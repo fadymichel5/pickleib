@@ -11,6 +11,9 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.openqa.selenium.*;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.devtools.DevTools;
+import org.openqa.selenium.devtools.v129.emulation.Emulation;
 import org.openqa.selenium.html5.LocalStorage;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.logging.LogEntries;
@@ -34,6 +37,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static utils.StringUtilities.Color.*;
 import static utils.StringUtilities.*;
@@ -564,6 +568,26 @@ public abstract class WebUtilities extends Utilities {
             Cookie cookie = new Cookie(cookieName, contextCheck(cookies.get(cookieName)));
             driver.manage().addCookie(cookie);
         }
+    }
+
+    /**
+     * Sets the geolocation of the browser
+     *
+     * @param latitude  latitude
+     * @param longitude longitude
+     */
+    public void setGeoLocation(double latitude, double longitude) {
+        // Get the DevTools instance from the driver
+        DevTools devTools = ((ChromeDriver) driver).getDevTools();
+        devTools.createSession();
+
+        // Set the geolocation override
+        devTools.send(Emulation.setGeolocationOverride(
+                Optional.of(latitude),
+                Optional.of(longitude),
+                Optional.of(100) // Accuracy in meters
+        ));
+        log.info("Geolocation set to latitude: " + latitude + ", longitude: " + longitude);
     }
 
     /**

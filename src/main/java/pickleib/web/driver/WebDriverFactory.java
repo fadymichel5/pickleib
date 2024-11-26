@@ -41,6 +41,16 @@ public class WebDriverFactory implements DriverFactory {
     static boolean headless = Boolean.parseBoolean(ContextStore.get("headless", "false"));
 
     /**
+     * proxy is used if true
+     */
+    static boolean useProxy = Boolean.parseBoolean(ContextStore.get("use-proxy", "false"));
+
+    /**
+     * determines proxy ip address
+     */
+    static String proxyIpAddress = ContextStore.get("proxy-ip-address", "145.207.255.255");
+
+    /**
      * session runs in mobile mode if true
      */
     static boolean mobileMode = Boolean.parseBoolean(ContextStore.get("mobile-mode", "false"));
@@ -141,7 +151,7 @@ public class WebDriverFactory implements DriverFactory {
                 ImmutableCapabilities capabilities = new ImmutableCapabilities("browserName", browserType.getDriverKey());
                 driver = new RemoteWebDriver(new URL(hubUrl), capabilities);
             }
-            else {driver = driverSwitch(headless, useWDM, insecureLocalHost, noSandbox, disableNotifications, allowRemoteOrigin, loadStrategy, browserType, mobileMode, preferredDevice);}
+            else {driver = driverSwitch(headless, useWDM, insecureLocalHost, noSandbox, disableNotifications, allowRemoteOrigin, loadStrategy, browserType, mobileMode, preferredDevice,useProxy,proxyIpAddress);}
 
             assert driver != null;
             driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(driverTimeout));
@@ -184,7 +194,9 @@ public class WebDriverFactory implements DriverFactory {
             PageLoadStrategy loadStrategy,
             BrowserType browserType,
             Boolean mobileMode,
-            EmulatedDevice preferredDevice){
+            EmulatedDevice preferredDevice,
+            Boolean useProxy,
+            String proxyIpAddress){
         if (useWDM) log.warning("Using WebDriverManager...");
         try {
             switch (browserType) {
@@ -200,6 +212,12 @@ public class WebDriverFactory implements DriverFactory {
 
                     if (allowRemoteOrigin) options.addArguments("--remote-allow-origins=*");
                     if (headless) options.addArguments("--headless=new");
+                    if (useProxy) {
+                        log.info("Using Proxy: "+proxyIpAddress);
+                        Proxy proxy = new Proxy();
+                        proxy.setHttpProxy(proxyIpAddress);
+                        options.setProxy(proxy);
+                    }
                     if (useWDM) WebDriverManager.chromedriver().setup();
                     if (mobileMode) options.setExperimentalOption("mobileEmulation", preferredDevice.emulate());
                     return new ChromeDriver(options);
@@ -231,7 +249,7 @@ public class WebDriverFactory implements DriverFactory {
         }
         catch (SessionNotCreatedException sessionException){
             log.warning(sessionException.getLocalizedMessage());
-            if (!useWDM) return driverSwitch(headless, true, insecureLocalHost, noSandbox, disableNotifications, allowRemoteOrigin, loadStrategy, browserType, mobileMode, preferredDevice);
+            if (!useWDM) return driverSwitch(headless, true, insecureLocalHost, noSandbox, disableNotifications, allowRemoteOrigin, loadStrategy, browserType, mobileMode, preferredDevice, useProxy, proxyIpAddress);
             else return null;
         }
     }

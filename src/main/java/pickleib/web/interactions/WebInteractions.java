@@ -1249,4 +1249,17 @@ public class WebInteractions extends WebUtilities implements PolymorphicUtilitie
         log.info("Element is in view ? " + highlighted(BLUE, String.valueOf(isElementInView)));
         return isElementInView;
     }
+
+
+    /**
+     * Sets the geolocation of the browser to the specified latitude and longitude coordinates.
+     *
+     * @param latitude  The latitude coordinate to set.
+     * @param longitude The longitude coordinate to set.
+     */
+    public void setGeolocation(double latitude, double longitude) {
+        log.info("Setting geolocation to latitude: " + latitude + ", longitude: " + longitude);
+        super.setGeoLocation(latitude, longitude);
+    }
+
 }
